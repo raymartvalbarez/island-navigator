@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a4d68">
+<title>Island Navigator · Bago NHS</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:linear-gradient(180deg,#0a4d68 0%,#05324a 50%,#021c2b 100%);color:#fff}
+body{display:flex;flex-direction:column;min-height:100%;-webkit-user-select:none;user-select:none}
+header.app{flex:0 0 auto;padding:10px 14px;background:linear-gradient(90deg,#05324a,#0a4d68);display:flex;align-items:center;gap:10px;border-bottom:2px solid #ffb84c66}
+.logo{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#ffd89b,#ff9f43);color:#05324a;display:grid;place-items:center;font-weight:900;font-size:1.2rem}
+header h1{font-size:1.08rem;margin:0;line-height:1.15}
+header small{display:block;opacity:.8;font-weight:500;font-size:.7rem;margin-top:2px}
+#btn-sound{margin-left:auto;background:#ffb84c;color:#05324a;border:0;border-radius:999px;padding:8px 12px;font-weight:800;font-size:.85rem}
+.screen{display:none;flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.screen.active{display:flex;flex-direction:column}
+.card{background:#fff;color:#1a1a1a;border-radius:16px;padding:18px;margin:14px;max-width:520px;width:calc(100% - 28px);align-self:center;box-shadow:0 8px 28px rgba(0,0,0,.3)}
+.hero{text-align:center;margin-bottom:8px}
+.badge{display:inline-block;background:#e0f7fa;color:#006064;font-weight:800;font-size:.72rem;padding:4px 10px;border-radius:999px;margin-bottom:8px}
+.hero strong{display:block;font-size:1.15rem;color:#05324a}
+.hero .tag{font-size:.8rem;color:#555;margin-top:4px;line-height:1.4}
+label{display:block;font-weight:700;margin:10px 0 4px;font-size:.88rem;color:#333}
+select{width:100%;padding:12px;font-size:1rem;border:1.5px solid #cfd8dc;border-radius:10px;background:#fafafa}
+select:disabled{opacity:.55;background:#eee}
+button.primary{width:100%;margin-top:14px;padding:14px;font-size:1.05rem;background:linear-gradient(180deg,#ffd89b,#ff9f43);border:0;border-radius:12px;font-weight:800;color:#05324a;box-shadow:0 3px 0 #c87420}
+button.primary:disabled{opacity:.55}
+button.secondary{width:100%;margin-top:8px;padding:12px;font-size:.95rem;background:#e0f7fa;border:0;border-radius:12px;font-weight:700;color:#006064}
+.note{font-size:.78rem;line-height:1.4;margin:10px 0 0;color:#444}
+.muted{opacity:.7;text-align:center;padding:16px}
+#level-btns{display:grid;gap:8px;margin-top:8px}
+#level-btns button.lvl{padding:16px;border:0;border-radius:12px;background:linear-gradient(180deg,#088395,#05596b);color:#fff;font-weight:800;font-size:1.05rem;box-shadow:0 3px 0 #033d49}
+#player-label{font-size:.85rem;margin-top:6px;font-weight:600;color:#006064}
+.no-tries{background:#ffebee;color:#b71c1c;padding:14px;border-radius:12px;text-align:center;line-height:1.45}
+#load-status{font-size:.78rem;color:#666;margin-top:6px;min-height:1.2em}
+#demo-banner{background:#fff3cd;color:#7a5600;border-radius:10px;padding:8px 10px;font-size:.82rem;font-weight:700;text-align:center;margin-bottom:8px}
+.how{font-size:.8rem;color:#333;line-height:1.45;background:#f1f8fa;border-radius:10px;padding:10px 12px;margin-top:12px}
+.how b{color:#05596b}
+/* game */
+#hud{flex:0 0 auto;padding:8px 10px 6px;background:#05324a;border-bottom:1px solid #ffb84c44}
+#hud-top{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:.85rem;gap:6px;flex-wrap:wrap}
+#hud-attempt{width:100%;text-align:center;order:-1;color:#ffd89b;font-size:.76rem}
+#hud-topic{text-align:center;font-size:.8rem;color:#bdf3ff;margin-top:2px}
+#timer-wrap{margin-top:6px;height:8px;background:#0a4d68;border-radius:6px;overflow:hidden;position:relative}
+#timer-bar{height:100%;width:100%;background:linear-gradient(90deg,#4cd137,#ffb84c,#e84118);transform-origin:left center}
+#timer-label{position:absolute;right:4px;top:-1px;font-size:.6rem;font-weight:800;color:#fff;text-shadow:0 0 3px #000}
+#scene{position:relative;height:64px;flex:0 0 auto;overflow:hidden;background:linear-gradient(180deg,#8fd3fe 0%,#cbeeff 55%,#1e90c8 56%,#0a6aa0 100%)}
+#scene .sun{position:absolute;right:16px;top:6px;width:22px;height:22px;border-radius:50%;background:#ffe08a;box-shadow:0 0 14px #ffd36b}
+#scene .isl{position:absolute;right:4%;bottom:22px;width:60px;height:22px;background:radial-gradient(ellipse at 50% 100%,#3c9d4a 60%,transparent 62%)}
+#scene .isl:after{content:"";position:absolute;left:28px;bottom:10px;width:3px;height:18px;background:#7a4a20;box-shadow:0 -2px 0 6px #2e8b3d inset}
+#scene .wave{position:absolute;left:0;right:0;bottom:0;height:30px;background:repeating-linear-gradient(90deg,transparent 0 18px,rgba(255,255,255,.25) 18px 26px);animation:sea 3s linear infinite}
+@keyframes sea{from{background-position:0 0}to{background-position:52px 0}}
+#boat{position:absolute;bottom:20px;left:6%;width:44px;height:30px;transition:left .8s ease;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(3px) rotate(-2deg)}}
+#scene.shake{animation:shk .35s}
+@keyframes shk{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#q-area{flex:1;overflow:auto;padding:10px 12px max(14px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center}
+#q-prompt{background:#fff;color:#0b2533;border-radius:12px;padding:12px 14px;font-size:1rem;line-height:1.45;font-weight:600;max-width:560px;width:100%}
+#q-diagram{max-width:560px;width:100%;margin-top:8px}
+svg.dg{width:100%;height:auto;display:block}
+svg .bg{fill:#eaf7fb}
+svg .ln,svg .path{stroke:#05596b;stroke-width:3;fill:none;stroke-linecap:round}
+svg .dash{stroke:#e8590c;stroke-width:3;stroke-dasharray:7 6;fill:none}
+svg .axis{stroke:#90a4ae;stroke-width:1.5;stroke-dasharray:4 4}
+svg .tk{stroke:#546e7a;stroke-width:2}
+svg .rose{fill:#fff;stroke:#05596b;stroke-width:2}
+svg .ra,svg .arc{stroke:#37474f;stroke-width:2;fill:none}
+svg .dt{fill:#05324a}
+svg .boat{fill:#ff9f43;stroke:#7a3d00;stroke-width:2}
+svg text{paint-order:stroke;stroke:#eaf7fb;stroke-width:4px;stroke-linejoin:round;font-family:system-ui,Arial,sans-serif;font-size:14px;font-weight:700;fill:#0b2533}
+svg .nsew{fill:#b71c1c;font-size:15px;font-weight:900}
+svg .vx{fill:#05324a;font-size:16px;font-weight:900}
+svg .ang{fill:#6a1b9a}
+svg .sd{fill:#00695c}
+svg .q{fill:#e8590c;font-size:17px;font-weight:900}
+#q-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;max-width:560px;width:100%}
+.chip{min-height:58px;padding:12px 10px;border:0;border-radius:14px;background:linear-gradient(180deg,#ffffff,#dff3f8);color:#05324a;font-size:1.02rem;font-weight:800;box-shadow:0 3px 0 #7fb8c8;text-align:left}
+.chip:active{transform:translateY(2px);box-shadow:0 1px 0 #7fb8c8}
+.chip:disabled{opacity:.6}
+.chip.ok{background:#c8f7c5;opacity:1}
+.chip.bad{background:#ffd0d0;opacity:1}
+.fb{min-height:1.4em;margin-top:8px;font-weight:800;text-align:center}
+.fb.ok{color:#9cff9c}.fb.bad{color:#ffb3b3}
+#calc-note{font-size:.72rem;opacity:.8;margin-top:8px;text-align:center}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{padding:8px 6px;border-bottom:1px solid #e0e0e0;text-align:left}
+th{background:#e0f7fa}
+tr.rank-1{background:#fff8e1}tr.rank-2{background:#f1f3f4}tr.rank-3{background:#fbe9e7}
+td.rank-cell{white-space:nowrap;font-weight:800}td.pts{font-weight:800;color:#1b5e20}td.lvl{font-weight:700;color:#006064}
+.board-link{display:block;text-align:center;margin-top:10px;font-weight:800;color:#006064;text-decoration:none;padding:10px;border-radius:10px;background:#e0f7fa}
+#sum-sync{font-size:.82rem;margin-top:8px;color:#333}
+@media (max-width:360px){#q-choices{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="logo">⛵</div>
+  <h1>Island Navigator<small>Bago National High School · Gen Math ADM</small></h1>
+  <button type="button" id="btn-sound" aria-label="Toggle sound">🔊 On</button>
+</header>
+
+<section id="screen-start" class="screen active">
+  <div class="card">
+    <div id="demo-banner" hidden>DEMO / PRACTICE — scores are not saved and your official try is not used.</div>
+    <div class="hero">
+      <div class="badge">Bago NHS · Grade 11 General Mathematics · Week 9</div>
+      <strong>Sail your banca from island to island.</strong>
+      <div class="tag">Bearings · SOH-CAH-TOA · Law of Sines · Law of Cosines · Area of triangles<br>Calculator allowed · 1 official try</div>
+    </div>
+    <button class="primary" id="btn-demo" hidden>Start Practice Voyage</button>
+    <label for="inp-grade">Grade</label>
+    <select id="inp-grade"><option value="">Loading…</option></select>
+    <label for="inp-section">Section</label>
+    <select id="inp-section" disabled><option value="">Select grade first</option></select>
+    <label for="inp-name">Name</label>
+    <select id="inp-name" disabled><option value="">Select section first</option></select>
+    <div id="load-status">Loading class list…</div>
+    <button class="primary" id="btn-play" disabled>Continue</button>
+    <button class="secondary" id="btn-go-board">Leaderboard</button>
+    <div id="levels-wrap" style="display:none;margin-top:12px">
+      <div id="player-label"></div>
+      <div id="level-btns"></div>
+    </div>
+    <div class="how">
+      <b>How to play:</b> Read the navigation problem and the sketch, solve it on paper with your calculator, then tap the correct answer.
+      Each level has <b>8 problems</b> and <b>3 lives</b>. A wrong answer or time-up costs a life (the correct answer is not shown).
+      Faster correct answers earn a small time bonus. Lengths are rounded to 2 decimal places; angles to the nearest degree.<br>
+      <b>L1</b> Bearings &amp; compass · <b>L2</b> Right triangles · <b>L3</b> Law of Sines · <b>L4</b> Law of Cosines · <b>L5</b> Mixed &amp; area
+    </div>
+  </div>
+</section>
+
+<section id="screen-game" class="screen">
+  <div id="hud">
+    <div id="hud-top">
+      <span id="hud-attempt">1 try only</span>
+      <span id="hud-level">L1</span>
+      <span id="hud-q">1/8</span>
+      <span>Score <span id="hud-score">0</span></span>
+      <span id="hud-lives">❤❤❤</span>
+    </div>
+    <div id="hud-topic"></div>
+    <div id="timer-wrap"><div id="timer-bar"></div><span id="timer-label"></span></div>
+  </div>
+  <div id="scene">
+    <div class="sun"></div><div class="isl"></div><div class="wave"></div>
+    <svg id="boat" viewBox="0 0 44 30"><path d="M21 2 L21 19 L36 19 Z" fill="#fff" stroke="#c87420" stroke-width="1"/><path d="M19 4 L19 19 L8 19 Z" fill="#ffd89b"/><path d="M2 20 L42 20 L35 27 L9 27 Z" fill="#b5651d" stroke="#5d2f0a"/><path d="M0 24 L8 24 M36 24 L44 24" stroke="#5d2f0a" stroke-width="2"/></svg>
+  </div>
+  <div id="q-area">
+    <div id="q-prompt">—</div>
+    <div id="q-diagram"></div>
+    <div id="q-choices"></div>
+    <div id="q-feedback" class="fb"></div>
+    <div id="calc-note">Sketch is not drawn to exact scale · Use a calculator in DEGREE mode</div>
+    <button class="secondary" id="btn-quit" style="max-width:560px;margin-top:12px;background:#0a4d68;color:#bdf3ff">Pause / Menu</button>
+  </div>
+</section>
+
+<section id="screen-summary" class="screen">
+  <div class="card">
+    <h2 id="sum-title" style="margin:0 0 8px;color:#05324a">Island reached</h2>
+    <p id="sum-detail" style="margin:0;line-height:1.45"></p>
+    <p id="sum-sync"></p>
+    <button class="primary" id="btn-next">Next Level</button>
+    <button class="secondary" id="btn-retry" style="display:none">Try again</button>
+    <button class="secondary" id="btn-menu">Back</button>
+  </div>
+</section>
+
+<section id="screen-board" class="screen">
+  <div class="card">
+    <strong>Leaderboard · Grade 11 &amp; 12</strong>
+    <select id="board-filter" style="margin:10px 0">
+      <option value="all">All</option><option value="11">Grade 11</option><option value="12">Grade 12</option>
+    </select>
+    <table>
+      <thead><tr><th>#</th><th>Name</th><th>Grade / Sec</th><th>Points</th><th>Level</th></tr></thead>
+      <tbody id="board-body"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
+    </table>
+    <a class="board-link" href="leaderboard.html" target="_blank" rel="noopener">Open full leaderboard ↗</a>
+    <button class="secondary" id="btn-board-back">Back</button>
+    <p class="note">🥇🥈🥉 Top 3 · Ties: points → level → earliest · 1 try each.</p>
+  </div>
+</section>
+
+<script>document.addEventListener('contextmenu',function(e){e.preventDefault();});</script>
+<script src="questions.js?v=20261106a"></script>
+<script src="diagram.js?v=20261106a"></script>
+<script src="game.js?v=20261106a"></script>
+</body>
+</html>
