@@ -92,6 +92,14 @@ td.rank-cell{white-space:nowrap;font-weight:800}td.pts{font-weight:800;color:#1b
 .board-link{display:block;text-align:center;margin-top:10px;font-weight:800;color:#006064;text-decoration:none;padding:10px;border-radius:10px;background:#e0f7fa}
 #sum-sync{font-size:.82rem;margin-top:8px;color:#333}
 @media (max-width:360px){#q-choices{grid-template-columns:1fr}}
+
+#screen-board{min-height:0}
+#screen-board .card{max-width:560px;display:flex;flex-direction:column;flex:1;min-height:0;max-height:calc(100% - 28px);overflow:hidden}
+#screen-board .board-scroll{flex:1;min-height:120px;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -4px}
+#screen-board .board-scroll table{width:100%}
+#screen-board .board-scroll thead th{position:sticky;top:0;z-index:1}
+#screen-board .board-actions{flex:0 0 auto}
+#board-caption{margin:0 0 6px;font-size:.8rem;color:#555;font-weight:700}
 </style>
 </head>
 <body>
@@ -173,21 +181,28 @@ td.rank-cell{white-space:nowrap;font-weight:800}td.pts{font-weight:800;color:#1b
   <div class="card">
     <strong>Leaderboard · Grade 11 &amp; 12</strong>
     <select id="board-filter" style="margin:10px 0">
-      <option value="all">All</option><option value="11">Grade 11</option><option value="12">Grade 12</option>
+      <option value="all">Overall (Top 10)</option>
+      <option value="11">Grade 11 (all)</option>
+      <option value="12">Grade 12 (all)</option>
     </select>
+    <p id="board-caption" class="note" style="margin:0 0 6px">Overall · Top 10</p>
+    <div class="board-scroll">
     <table>
       <thead><tr><th>#</th><th>Name</th><th>Grade / Sec</th><th>Points</th><th>Level</th></tr></thead>
       <tbody id="board-body"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
     </table>
+    </div>
+    <div class="board-actions">
     <a class="board-link" href="leaderboard.html" target="_blank" rel="noopener">Open full leaderboard ↗</a>
     <button class="secondary" id="btn-board-back">Back</button>
-    <p class="note">🥇🥈🥉 Top 3 · Ties: points → level → earliest · 1 try each.</p>
+    <p class="note">🥇🥈🥉 Top 3 · Overall shows Top 10 · Grade 11 &amp; 12 show everyone · Ties: points → level → earliest · 1 try each.</p>
+    </div>
   </div>
 </section>
 
 <script>document.addEventListener('contextmenu',function(e){e.preventDefault();});</script>
 <script src="questions.js?v=20261106a"></script>
 <script src="diagram.js?v=20261106a"></script>
-<script src="game.js?v=20261106a"></script>
+<script src="game.js?v=20261112lb"></script>
 </body>
 </html>
