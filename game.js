@@ -2,9 +2,11 @@
 (function () {
   'use strict';
 
-  const API_NS = 'bnhs-inavigator-nov2026';
+  const PREV_API_NS = 'bnhs-inavigator-nov2026';
+  const API_NS = 'bnhs-inavigator-nov13-2026';
   const API = 'https://mantledb.sh/v2/' + API_NS;
   const API_EXPORT = 'https://mantledb.sh/v2/export/' + API_NS;
+  const PREV_API_EXPORT = 'https://mantledb.sh/v2/export/' + PREV_API_NS;
   const ADM_API =
     'https://script.google.com/macros/s/AKfycbwGMSP8NmPT4GYMJZTw4qruizfFd5wzORZHZRM-HOUJOSQyyg3Gx20L5MEWsqT5EFdl-w/exec';
 
@@ -19,6 +21,12 @@
   const DEMO =
     /(?:\?|&)(?:demo|test)=1(?:&|$)/.test(location.search || '') ||
     location.hash === '#demo';
+
+  const SESSION_LABEL = 'ADM Activity · Nov. 13, 2026';
+  const SESSION_DATE = 'Nov. 13, 2026';
+  const SESSION_ISO = '2026-11-13';
+  const SESSION_KEY = 'nov13';
+
 
   // ---- Web Audio: sea / wind motif ----
   const Sound = (function () {
@@ -115,7 +123,7 @@
   }
   function loadLocal() {
     try {
-      const raw = localStorage.getItem('in-progress-' + keyOf(player));
+      const raw = localStorage.getItem('in-progress-nov13-' + keyOf(player));
       if (raw) {
         const p = JSON.parse(raw);
         progress.attemptsUsed = Math.max(0, Number(p.attemptsUsed) || 0);
@@ -139,7 +147,7 @@
   }
   function saveLocal() {
     try {
-      localStorage.setItem('in-progress-' + keyOf(player), JSON.stringify(progress));
+      localStorage.setItem('in-progress-nov13-' + keyOf(player), JSON.stringify(progress));
     } catch (e) {}
   }
 
@@ -213,26 +221,34 @@
   }
   async function fetchBoard() {
     try {
-      const r = await fetch(API_EXPORT + '?t=' + Date.now());
-      const j = await r.json();
+      const urls = [API_EXPORT, PREV_API_EXPORT];
       const entries = [];
-      const bag = (j && j.entries) || {};
-      Object.keys(bag).forEach(function (path) {
-        if (path.indexOf('scores/') === 0 && bag[path] && bag[path].name) entries.push(bag[path]);
-      });
-      return entries.filter(function (e) { return Number(e.total) <= MAX_PLAUSIBLE; });
-    } catch (e) {
-      try { return JSON.parse(localStorage.getItem('in-local-board') || '[]'); }
-      catch (e2) { return []; }
+      for (var i = 0; i < urls.length; i++) {
+        try {
+          const r = await fetch(urls[i] + '?t=' + Date.now());
+          if (!r || !r.ok) continue;
+          const j = await r.json();
+          const bag = (j && j.entries) || {};
+          Object.keys(bag).forEach(function (path) {
+            if (path.indexOf('scores/') === 0 && bag[path] && bag[path].name) entries.push(bag[path]);
+          });
+        } catch (ignore) {}
+      }
+      if (entries.length) return entries.filter(function (e) { return Number(e.total) <= MAX_PLAUSIBLE; });
+    } catch (e) {}
+    try {
+      return JSON.parse(localStorage.getItem('in-local-board-nov13') || '[]');
+    } catch (e2) {
+      return [];
     }
   }
-  async function submitRecord(entry) {
-    const local = JSON.parse(localStorage.getItem('in-local-board') || '[]');
+async function submitRecord(entry) {
+    const local = JSON.parse(localStorage.getItem('in-local-board-nov13') || '[]');
     const idx = local.findIndex(function (e) {
       return norm(e.name) === norm(entry.name) && String(e.grade) === String(entry.grade);
     });
     if (idx >= 0) local[idx] = entry; else local.push(entry);
-    localStorage.setItem('in-local-board', JSON.stringify(local));
+    localStorage.setItem('in-local-board-nov13', JSON.stringify(local));
     try {
       const path = API + '/scores/' + keyOf(entry);
       let best = Object.assign({}, entry);
@@ -275,7 +291,7 @@
 
   /* ---- Reliable upload: pending queue + retry (added Nov 6 2026) ---- */
   var remoteConfirmed = false;
-  function pendingKey(p) { return 'in-pending-' + keyOf(p); }
+  function pendingKey(p) { return 'in-pending-nov13-' + keyOf(p); }
   function setPending(entry) {
     if (DEMO) return;
     try { localStorage.setItem(pendingKey(entry), JSON.stringify(entry)); } catch (e) {}
@@ -306,7 +322,7 @@
     try {
       for (var i = 0; i < localStorage.length; i++) {
         var k = localStorage.key(i);
-        if (k && k.indexOf('in-pending-') === 0) keys.push(k);
+        if (k && k.indexOf('in-pending-nov13-') === 0) keys.push(k);
       }
       for (var j = 0; j < keys.length; j++) {
         var e = null;
@@ -327,6 +343,9 @@
         total: progress.bestTotal, bestLevel: progress.bestLevel,
         attempts: progress.attemptsUsed, attemptScores: (progress.attemptScores || []).slice(-4),
         ts: Date.now(),
+        date: SESSION_ISO,
+        admDate: SESSION_DATE,
+        session: SESSION_KEY,
       });
     }
     if (hasPending()) flushPending();
@@ -377,7 +396,11 @@
     }
   }
   function entryManilaYmd(e) {
-    return e ? manilaYmdFromMs(e.ts) : '';
+    var ymd = e ? manilaYmdFromMs(e.ts) : '';
+    if (ymd) return ymd;
+    var d = e && e.date;
+    if (d && /^\d{4}-\d{2}-\d{2}$/.test(String(d))) return String(d);
+    return '';
   }
   function ymdParts(ymd) {
     var m = String(ymd || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -713,6 +736,9 @@
       total: progress.bestTotal, bestLevel: progress.bestLevel,
       attempts: progress.attemptsUsed, attemptScores: progress.attemptScores.slice(-4),
       correct: attempt.totalCorrect, ts: Date.now(),
+        date: SESSION_ISO,
+        admDate: SESSION_DATE,
+        session: SESSION_KEY,
     };
     $('sum-sync').textContent = 'Saving best score…';
     setPending(entry);
