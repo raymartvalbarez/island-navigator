@@ -26,6 +26,32 @@
   const SESSION_DATE = 'Nov. 13, 2026';
   const SESSION_ISO = '2026-11-13';
   const SESSION_KEY = 'nov13';
+  // Hard close (Nov 16, 2026): no new play and no new score saves. Leaderboards stay open. Saved MantleDB scores are untouched.
+  const ADM_CLOSED = true;
+  function isSessionOpen() {
+    return !ADM_CLOSED;
+  }
+  function sessionClosedMessage() {
+    return 'This game is closed.';
+  }
+  function showClosedUI() {
+    var form = document.getElementById('play-form');
+    if (form) form.hidden = true;
+    var msg = document.getElementById('closed-msg');
+    if (msg) msg.hidden = false;
+    var wrap = document.getElementById('levels-wrap');
+    if (wrap) { wrap.hidden = true; wrap.style.display = 'none'; }
+    var how = document.querySelector('#screen-start .how');
+    if (how) how.hidden = true;
+    var demoBtn = document.getElementById('btn-demo');
+    if (demoBtn) demoBtn.hidden = true;
+    var demoBanner = document.getElementById('demo-banner');
+    if (demoBanner) demoBanner.hidden = true;
+    var small = document.querySelector('header.app h1 small');
+    if (small) small.textContent = 'This game is closed';
+    var badge = document.querySelector('.hero .badge');
+    if (badge) badge.textContent = 'Closed';
+  }
 
 
   // ---- Web Audio: sea / wind motif ----
@@ -243,6 +269,7 @@
     }
   }
 async function submitRecord(entry) {
+    if (ADM_CLOSED) return false;
     const local = JSON.parse(localStorage.getItem('in-local-board-nov13') || '[]');
     const idx = local.findIndex(function (e) {
       return norm(e.name) === norm(entry.name) && String(e.grade) === String(entry.grade);
@@ -293,7 +320,7 @@ async function submitRecord(entry) {
   var remoteConfirmed = false;
   function pendingKey(p) { return 'in-pending-nov13-' + keyOf(p); }
   function setPending(entry) {
-    if (DEMO) return;
+    if (DEMO || ADM_CLOSED) return;
     try { localStorage.setItem(pendingKey(entry), JSON.stringify(entry)); } catch (e) {}
   }
   function clearPending(entry) {
@@ -304,7 +331,7 @@ async function submitRecord(entry) {
   }
   function sleepMs(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   async function submitWithRetry(entry) {
-    if (DEMO) return false;
+    if (DEMO || ADM_CLOSED) return false;
     var waits = [0, 1500, 4000, 9000];
     for (var i = 0; i < waits.length; i++) {
       if (waits[i]) await sleepMs(waits[i]);
@@ -316,7 +343,7 @@ async function submitRecord(entry) {
   }
   var flushing = false;
   async function flushPending() {
-    if (DEMO || flushing) return;
+    if (DEMO || ADM_CLOSED || flushing) return;
     flushing = true;
     var keys = [];
     try {
@@ -595,8 +622,16 @@ async function submitRecord(entry) {
   $('inp-name').onchange = function () { $('btn-play').disabled = !$('inp-name').value; };
 
   // ---------------- Gameplay (DOM + SVG) ----------------
+  function startAttempt() {
+    if (!isSessionOpen()) {
+      showClosedUI();
+      alert(sessionClosedMessage());
+      return;
+    }
+  }
   let timerRaf = 0;
   function startLevel(level) {
+    if (!isSessionOpen()) { showClosedUI(); return; }
     level = clampLevel(level);
     run = {
       level: level, items: INQ.buildLevel(level, ITEMS), qIndex: 0, lives: LIVES,
@@ -721,7 +756,7 @@ async function submitRecord(entry) {
     Sound.stopMusic();
     const score = attempt.score;
     const bestLevel = attempt.bestLevel;
-    if (DEMO) {
+    if (DEMO && !ADM_CLOSED) {
       $('sum-sync').textContent = 'Demo mode — score not saved (' + score + ' pts).';
       return;
     }
@@ -762,6 +797,7 @@ async function submitRecord(entry) {
     $('btn-menu').textContent = 'Back';
   }
   function paintLobby() {
+    if (ADM_CLOSED) { showClosedUI(); return; }
     $('levels-wrap').style.display = '';
     const left = MAX_ATTEMPTS - progress.attemptsUsed;
     $('player-label').textContent =
@@ -815,6 +851,11 @@ async function submitRecord(entry) {
     localStorage.setItem('in-section', section);
     progress = blankProgress();
     loadLocal();
+    if (!isSessionOpen()) {
+      showClosedUI();
+      alert(sessionClosedMessage());
+      return;
+    }
     $('btn-play').disabled = true;
     $('btn-play').textContent = 'Checking tries…';
     const rec = await fetchRemoteRecord();
@@ -909,7 +950,8 @@ async function submitRecord(entry) {
   }
 
   $('btn-quit').onclick = function () { $('btn-menu').onclick(); };
-  loadLearners();
+  if (ADM_CLOSED) showClosedUI();
+  if (!ADM_CLOSED) loadLearners();
   Sound.paintBtn();
   const btnSound = $('btn-sound');
   if (btnSound) btnSound.onclick = function () { Sound.toggle(); };
