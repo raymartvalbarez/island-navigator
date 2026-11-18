@@ -108,17 +108,12 @@ td.rank-cell{white-space:nowrap;font-weight:800}td.pts{font-weight:800;color:#1b
 .date-row label{flex:1;margin:0;font-size:.78rem;font-weight:700;color:#333}
 .date-row input[type=date]{width:100%;margin-top:4px;padding:10px 8px;font-size:1rem;min-height:42px}
 #board-caption{margin:0 0 6px;font-size:.8rem;color:#555;font-weight:700}
-
-#closed-msg{text-align:center;padding:14px 12px;margin:4px 0 12px;background:#fff3e0;border:2px solid #ef6c00;border-radius:14px}
-#closed-msg strong{display:block;font-size:1.15rem;color:#e65100;margin-bottom:6px}
-#closed-msg .tag{margin-top:0;color:#6d4c41}
-#play-form[hidden]{display:none!important}
 </style>
 </head>
 <body>
 <header class="app">
   <div class="logo">⛵</div>
-  <h1>Island Navigator<small>This game is closed</small></h1>
+  <h1>Island Navigator<small>ADM Activity · Nov. 13, 2026</small></h1>
   <button type="button" id="btn-sound" aria-label="Toggle sound">🔊 On</button>
 </header>
 
@@ -126,13 +121,10 @@ td.rank-cell{white-space:nowrap;font-weight:800}td.pts{font-weight:800;color:#1b
   <div class="card">
     <div id="demo-banner" hidden>DEMO / PRACTICE — scores are not saved and your official try is not used.</div>
     <div class="hero">
-      <div class="badge">Closed</div>
+      <div class="badge">ADM Activity · Nov. 13, 2026</div>
+      <strong>Sail your banca from island to island.</strong>
+      <div class="tag">Bearings · SOH-CAH-TOA · Law of Sines · Law of Cosines · Area of triangles<br>Calculator allowed · 1 official try</div>
     </div>
-    <div id="closed-msg">
-      <strong>This game is closed.</strong>
-      <div class="tag">You can still view the leaderboard. All saved scores are kept.</div>
-    </div>
-    <div id="play-form" hidden>
     <button class="primary" id="btn-demo" hidden>Start Practice Voyage</button>
     <label for="inp-grade">Grade</label>
     <select id="inp-grade"><option value="">Loading…</option></select>
@@ -142,13 +134,12 @@ td.rank-cell{white-space:nowrap;font-weight:800}td.pts{font-weight:800;color:#1b
     <select id="inp-name" disabled><option value="">Select section first</option></select>
     <div id="load-status">Loading class list…</div>
     <button class="primary" id="btn-play" disabled>Continue</button>
-    </div>
     <button class="secondary" id="btn-go-board">Leaderboard</button>
-    <div id="levels-wrap" hidden style="display:none;margin-top:12px">
+    <div id="levels-wrap" style="display:none;margin-top:12px">
       <div id="player-label"></div>
       <div id="level-btns"></div>
     </div>
-    <div class="how" hidden>
+    <div class="how">
       <b>How to play:</b> Read the navigation problem and the sketch, solve it on paper with your calculator, then tap the correct answer.
       Each level has <b>8 problems</b> and <b>3 lives</b>. A wrong answer or time-up costs a life (the correct answer is not shown).
       Faster correct answers earn a small time bonus. Lengths are rounded to 2 decimal places; angles to the nearest degree.<br>
@@ -230,6 +221,6 @@ td.rank-cell{white-space:nowrap;font-weight:800}td.pts{font-weight:800;color:#1b
 <script>document.addEventListener('contextmenu',function(e){e.preventDefault();});</script>
 <script src="questions.js?v=20261106a"></script>
 <script src="diagram.js?v=20261106a"></script>
-<script src="game.js?v=20261116a"></script>
+<script src="game.js?v=20261118a"></script>
 </body>
 </html>
