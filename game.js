@@ -2,11 +2,13 @@
 (function () {
   'use strict';
 
-  const PREV_API_NS = 'bnhs-inavigator-nov2026';
-  const API_NS = 'bnhs-inavigator-nov13-2026';
+  const PREV_API_NS = 'bnhs-inavigator-nov13-2026';
+  const PREV2_API_NS = 'bnhs-inavigator-nov2026';
+  const API_NS = 'bnhs-inavigator-nov18-2026';
   const API = 'https://mantledb.sh/v2/' + API_NS;
   const API_EXPORT = 'https://mantledb.sh/v2/export/' + API_NS;
   const PREV_API_EXPORT = 'https://mantledb.sh/v2/export/' + PREV_API_NS;
+  const PREV2_API_EXPORT = 'https://mantledb.sh/v2/export/' + PREV2_API_NS;
   const ADM_API =
     'https://script.google.com/macros/s/AKfycbwGMSP8NmPT4GYMJZTw4qruizfFd5wzORZHZRM-HOUJOSQyyg3Gx20L5MEWsqT5EFdl-w/exec';
 
@@ -22,10 +24,10 @@
     /(?:\?|&)(?:demo|test)=1(?:&|$)/.test(location.search || '') ||
     location.hash === '#demo';
 
-  const SESSION_LABEL = 'ADM Activity · Nov. 13, 2026';
-  const SESSION_DATE = 'Nov. 13, 2026';
-  const SESSION_ISO = '2026-11-13';
-  const SESSION_KEY = 'nov13';
+  const SESSION_LABEL = 'ADM Activity · Nov. 18, 2026';
+  const SESSION_DATE = 'Nov. 18, 2026';
+  const SESSION_ISO = '2026-11-18';
+  const SESSION_KEY = 'nov18';
 
 
   // ---- Web Audio: sea / wind motif ----
@@ -123,7 +125,7 @@
   }
   function loadLocal() {
     try {
-      const raw = localStorage.getItem('in-progress-nov13-' + keyOf(player));
+      const raw = localStorage.getItem('in-progress-nov18-' + keyOf(player));
       if (raw) {
         const p = JSON.parse(raw);
         progress.attemptsUsed = Math.max(0, Number(p.attemptsUsed) || 0);
@@ -147,7 +149,7 @@
   }
   function saveLocal() {
     try {
-      localStorage.setItem('in-progress-nov13-' + keyOf(player), JSON.stringify(progress));
+      localStorage.setItem('in-progress-nov18-' + keyOf(player), JSON.stringify(progress));
     } catch (e) {}
   }
 
@@ -221,7 +223,7 @@
   }
   async function fetchBoard() {
     try {
-      const urls = [API_EXPORT, PREV_API_EXPORT];
+      const urls = [API_EXPORT, PREV_API_EXPORT, PREV2_API_EXPORT];
       const entries = [];
       for (var i = 0; i < urls.length; i++) {
         try {
@@ -237,18 +239,18 @@
       if (entries.length) return entries.filter(function (e) { return Number(e.total) <= MAX_PLAUSIBLE; });
     } catch (e) {}
     try {
-      return JSON.parse(localStorage.getItem('in-local-board-nov13') || '[]');
+      return JSON.parse(localStorage.getItem('in-local-board-nov18') || '[]');
     } catch (e2) {
       return [];
     }
   }
 async function submitRecord(entry) {
-    const local = JSON.parse(localStorage.getItem('in-local-board-nov13') || '[]');
+    const local = JSON.parse(localStorage.getItem('in-local-board-nov18') || '[]');
     const idx = local.findIndex(function (e) {
       return norm(e.name) === norm(entry.name) && String(e.grade) === String(entry.grade);
     });
     if (idx >= 0) local[idx] = entry; else local.push(entry);
-    localStorage.setItem('in-local-board-nov13', JSON.stringify(local));
+    localStorage.setItem('in-local-board-nov18', JSON.stringify(local));
     try {
       const path = API + '/scores/' + keyOf(entry);
       let best = Object.assign({}, entry);
@@ -291,7 +293,7 @@ async function submitRecord(entry) {
 
   /* ---- Reliable upload: pending queue + retry (added Nov 6 2026) ---- */
   var remoteConfirmed = false;
-  function pendingKey(p) { return 'in-pending-nov13-' + keyOf(p); }
+  function pendingKey(p) { return 'in-pending-nov18-' + keyOf(p); }
   function setPending(entry) {
     if (DEMO) return;
     try { localStorage.setItem(pendingKey(entry), JSON.stringify(entry)); } catch (e) {}
@@ -322,7 +324,7 @@ async function submitRecord(entry) {
     try {
       for (var i = 0; i < localStorage.length; i++) {
         var k = localStorage.key(i);
-        if (k && k.indexOf('in-pending-nov13-') === 0) keys.push(k);
+        if (k && k.indexOf('in-pending-nov18-') === 0) keys.push(k);
       }
       for (var j = 0; j < keys.length; j++) {
         var e = null;
@@ -436,6 +438,17 @@ async function submitRecord(entry) {
     var tEl = document.getElementById('board-to');
     return { from: (fEl && fEl.value) || '', to: (tEl && tEl.value) || '' };
   }
+  function dedupeBest(list) {
+    // One row per learner when several rounds are merged: keep their best score.
+    var best = {};
+    list.forEach(function (e) {
+      var k = String(e.name || '').trim().toLowerCase().replace(/\s+/g, ' ') + '|' + String(e.grade || '');
+      var cur = best[k];
+      if (!cur || Number(e.total) > Number(cur.total) ||
+          (Number(e.total) === Number(cur.total) && (Number(e.ts) || 1e15) < (Number(cur.ts) || 1e15))) best[k] = e;
+    });
+    return Object.keys(best).map(function (k) { return best[k]; });
+  }
   function filterByDate(list, range) {
     if (!range || (!range.from && !range.to)) return list.slice();
     return list.filter(function (e) {
@@ -482,7 +495,7 @@ async function submitRecord(entry) {
     const tb = $('board-body');
     tb.innerHTML = '';
     const dateRange = currentDateRange();
-    const ranged = filterByDate(entries.slice(), dateRange);
+    const ranged = dedupeBest(filterByDate(entries.slice(), dateRange));
     const undatedHidden = (!dateRange.from && !dateRange.to) ? 0 : countUndated(entries);
     let list = ranged;
     if (filter === '11' || filter === '12') {
@@ -595,6 +608,44 @@ async function submitRecord(entry) {
   $('inp-name').onchange = function () { $('btn-play').disabled = !$('inp-name').value; };
 
   // ---------------- Gameplay (DOM + SVG) ----------------
+  // Start (or resume) the learner's one official voyage. Resume only within this Nov 18 round.
+  function startAttempt() {
+    return (async function () {
+      if (!DEMO) {
+        const rec = await fetchRemoteRecord();
+        mergeRemote(rec); afterRemote(rec);
+        if (progress.attemptsUsed >= MAX_ATTEMPTS) {
+          clearOpenAttempt();
+          saveLocal();
+          paintLobby();
+          return;
+        }
+      }
+      if (!DEMO && progress.openAttempt && progress.attemptsUsed < MAX_ATTEMPTS) {
+        const oa = progress.openAttempt;
+        const lvl = clampLevel(oa.nextLevel);
+        attempt = {
+          num: Math.max(1, Number(oa.num) || progress.attemptsUsed + 1),
+          score: Math.max(0, Number(oa.score) || 0),
+          unlocked: LEVELS,
+          bestLevel: Math.max(0, Number(oa.bestLevel) || 0),
+          totalCorrect: Math.max(0, Number(oa.totalCorrect) || 0),
+          active: true,
+        };
+        Sound.unlock();
+        snapshotOpenAttempt({ nextLevel: lvl, awaitingNext: false });
+        startLevel(lvl);
+        return;
+      }
+      attempt = {
+        num: DEMO ? 1 : progress.attemptsUsed + 1,
+        score: 0, unlocked: LEVELS, bestLevel: 0, totalCorrect: 0, active: true,
+      };
+      if (!DEMO) snapshotOpenAttempt({ nextLevel: 1, awaitingNext: false });
+      Sound.unlock();
+      startLevel(1);
+    })();
+  }
   let timerRaf = 0;
   function startLevel(level) {
     level = clampLevel(level);
